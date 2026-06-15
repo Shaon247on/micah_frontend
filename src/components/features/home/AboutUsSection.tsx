@@ -13,7 +13,7 @@ export default function AboutUsSection() {
           transition={{ duration: 0.6 }}
           className="max-w-3xl mb-10"
         >
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#E07B3F]">About Us</span>
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#E07B3F]">Our Story</span>
           <h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#121F37] leading-tight">
             Fast, fair HVAC service built for Joliet Area homeowners.
           </h2>

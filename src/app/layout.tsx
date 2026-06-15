@@ -8,6 +8,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HashRedirect from "@/components/layout/HashRedirect";
 import FloatingMessenger from "@/components/ui/FloatingMessenger";
+import { Toaster } from "sonner";
 
 const poppins = Poppins({
   weight:["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -40,6 +41,7 @@ export default function RootLayout({
         <Navbar />
         <HashRedirect />
         {children}
+        <Toaster/>
         <FloatingMessenger />
         <Footer />
       </body>

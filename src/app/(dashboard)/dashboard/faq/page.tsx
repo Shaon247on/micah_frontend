@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 import {
   Edit,
@@ -9,38 +9,34 @@ import {
   GripVertical,
   ChevronDown,
   ChevronUp,
-} from 'lucide-react';
+} from "lucide-react";
 
-import AddFaqModal from '@/components/dashboard/AddFaqModal';
+import AddFaqModal from "@/components/dashboard/AddFaqModal";
 
 const initialFaqs = [
   {
     id: 1,
-    question: 'How often should I have my HVAC system serviced?',
+    question: "How often should I have my HVAC system serviced?",
     answer:
-      'It is recommended to have your HVAC system serviced at least once a year, preferably in the spring for cooling and fall for heating.',
-    category: null,
+      "It is recommended to have your HVAC system serviced at least once a year, preferably in the spring for cooling and fall for heating.",
   },
   {
     id: 2,
-    question: 'What are the signs that I need a new air conditioner?',
+    question: "What are the signs that I need a new air conditioner?",
     answer:
-      'Signs include frequent breakdowns, rising energy bills, uneven cooling, and if your system is over 10-15 years old.',
-    category: null,
+      "Signs include frequent breakdowns, rising energy bills, uneven cooling, and if your system is over 10-15 years old.",
   },
   {
     id: 3,
-    question: 'How often should I change my air filters?',
+    question: "How often should I change my air filters?",
     answer:
-      'Air filters should be changed every 1-3 months depending on usage, pets, and indoor air quality needs.',
-    category: 'General',
+      "Air filters should be changed every 1-3 months depending on usage, pets, and indoor air quality needs.",
   },
   {
     id: 4,
-    question: 'Do you offer emergency repair services?',
+    question: "Do you offer emergency repair services?",
     answer:
-      'Yes, we offer 24/7 emergency HVAC repair services for all our customers.',
-    category: 'Repairs',
+      "Yes, we offer 24/7 emergency HVAC repair services for all our customers.",
   },
 ];
 
@@ -90,8 +86,8 @@ export default function FaqManagement() {
                 overflow-hidden rounded-xl border bg-white transition-all duration-300
                 ${
                   isOpen
-                    ? 'border-(--color-primary) shadow-md'
-                    : 'border-(--color-border)'
+                    ? "border-(--color-primary) shadow-md"
+                    : "border-(--color-border)"
                 }
               `}
             >
@@ -110,12 +106,6 @@ export default function FaqManagement() {
                   <span className="text-[15px] font-medium text-(--color-text-main)">
                     {faq.question}
                   </span>
-
-                  {faq.category && (
-                    <span className="rounded-full border border-(--color-border) bg-(--color-bg) px-2 py-1 text-[11px] font-semibold text-(--color-text-muted)">
-                      {faq.category}
-                    </span>
-                  )}
                 </div>
 
                 {/* Actions */}
@@ -157,10 +147,7 @@ export default function FaqManagement() {
         })}
       </div>
 
-      <AddFaqModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      <AddFaqModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

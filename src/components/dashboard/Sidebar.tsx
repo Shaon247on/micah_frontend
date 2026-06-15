@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
-  Wrench,
   HelpCircle,
   Info,
   Settings,
-  LogOut,
 } from "lucide-react";
+import Image from "next/image";
+import { LogoutButton } from "../auth/LogoutButton";
 
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -26,13 +26,16 @@ const navItems = [
   { name: "Settings", path: "/dashboard/settings", icon: Settings },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  onLinkClick?: () => void;
+}
+
+export default function Sidebar({ onLinkClick }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
 
   return (
     <aside className="w-[260px] bg-(--color-surface) border-r border-(--color-border) flex flex-col h-full">
-      <Link href={"/"}>
+      <Link href={"/"} onClick={onLinkClick}>
         <div className="px-6 py-6 flex items-center border-b border-(--color-border)">
           <div className="bg-(--color-primary) text-white w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center">
             <svg
@@ -60,6 +63,7 @@ export default function Sidebar() {
             <Link
               href={item.path}
               key={item.name}
+              onClick={onLinkClick}
               className={`flex items-center px-4 py-3 rounded-[var(--radius-md)] text-(--color-text-muted) transition-colors duration-200 ${isActive ? "bg-(--color-primary-light) text-(--color-primary) font-medium border-l-4 border-(--color-primary)" : "hover:bg-(--color-bg) hover:text-(--color-text-main)"}`}
             >
               <item.icon className="mr-3" size={20} />
@@ -76,7 +80,9 @@ export default function Sidebar() {
 
       <div className="px-4 py-4 border-t border-(--color-border)">
         <div className="flex items-center p-2">
-          <img
+          <Image
+          width={40}
+          height={40}
             className="w-10 h-10 rounded-full mr-3"
             src="https://ui-avatars.com/api/?name=Sarah+Mitchell&background=c25e28&color=fff"
             alt="Sarah Mitchell"
@@ -89,12 +95,13 @@ export default function Sidebar() {
               Super Admin
             </span>
           </div>
-          <button
+          <LogoutButton/>
+          {/* <button
             className="text-(--color-text-muted) p-2 transition-colors duration-200 hover:text-(--color-text-main)"
             onClick={() => router.push("/sign-in")}
           >
             <LogOut size={18} />
-          </button>
+          </button> */}
         </div>
       </div>
     </aside>
