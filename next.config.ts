@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
         hostname: "**",
       },
     ],
+    unoptimized: true,
+  },
+
+  // ✅ Correct experimental config for server actions
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
   },
 
   async headers() {

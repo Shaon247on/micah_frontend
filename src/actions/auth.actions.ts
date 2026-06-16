@@ -5,6 +5,8 @@ import {
   ForgotPasswordFormData, 
   VerifyOtpFormData,
 } from '@/schemas/auth.schema';
+import { redirect } from 'next/navigation';
+import api from '@/lib/axios';
 
 // Forgot password - Send OTP
 export async function forgotPassword(data: ForgotPasswordFormData) {
@@ -107,6 +109,33 @@ export async function resetPassword(data: { resetToken: string; newPassword: str
     };
   }
 }
+// Fetch complete user info from API
+export async function fetchUserInfo() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    
+    if (!token) {
+      return null;
+    }
+    
+    const response = await api.get('/api/auth/user-info', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (response.data.status === 'success') {
+      return response.data.data;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+    return null;
+  }
+}
+
 
 // Get current user from cookie
 export async function getCurrentUser() {
@@ -135,4 +164,45 @@ export async function isAuthenticated() {
   } catch (error) {
     return false;
   }
+}
+
+
+
+export async function refreshUserInfo() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    
+    const response = await api.post('/api/auth/refresh', {}, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Error refreshing user info:', error);
+    return {
+      status: 'error',
+      message: error.response?.data?.message || 'Failed to refresh user info',
+    };
+  }
+}
+
+
+export async function logout() {
+  try {
+    // Call backend logout to clear cookies
+    await api.post('/api/auth/logout');
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+  
+  // Clear cookies on server side
+  const cookieStore = await cookies();
+  cookieStore.delete('auth_token');
+  cookieStore.delete('user_info');
+  
+  // Redirect to login page
+  redirect('/login');
 }

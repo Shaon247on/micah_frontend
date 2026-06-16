@@ -2,16 +2,17 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins, Inter } from "next/font/google";
 import "./globals.css";
 
-import { barlowCondensed } from '@/lib/fonts';
+import { barlowCondensed } from "@/lib/fonts";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HashRedirect from "@/components/layout/HashRedirect";
 import FloatingMessenger from "@/components/ui/FloatingMessenger";
 import { Toaster } from "sonner";
+import { UserProvider } from "@/context/UserContext";
 
 const poppins = Poppins({
-  weight:["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-poppins",
   subsets: ["latin"],
 });
@@ -20,7 +21,6 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
-
 
 export const metadata: Metadata = {
   title: "Micah K Official",
@@ -38,12 +38,14 @@ export default function RootLayout({
       className={`${poppins.variable} ${inter.variable} ${barlowCondensed.variable} h-full antialiased font-inter`}
     >
       <body className="min-h-full flex flex-col scroll-smooth">
-        <Navbar />
-        <HashRedirect />
-        {children}
-        <Toaster/>
-        <FloatingMessenger />
-        <Footer />
+        <UserProvider>
+          <Navbar />
+          <HashRedirect />
+          {children}
+          <Toaster />
+          <FloatingMessenger />
+          <Footer />
+        </UserProvider>
       </body>
     </html>
   );
