@@ -8,6 +8,7 @@ import {
   HelpCircle,
   Info,
   Settings,
+  Newspaper,
 } from "lucide-react";
 import Image from "next/image";
 import { LogoutButton } from "../auth/LogoutButton";
@@ -23,6 +24,7 @@ const navItems = [
   // { name: 'Services', path: '/dashboard/services', icon: Wrench },
   { name: "FAQ", path: "/dashboard/faq", icon: HelpCircle },
   { name: "About Us", path: "/dashboard/about", icon: Info },
+  { name: "Blogs Management", path: "/dashboard/blogs", icon: Newspaper },
   { name: "Settings", path: "/dashboard/settings", icon: Settings },
 ];
 

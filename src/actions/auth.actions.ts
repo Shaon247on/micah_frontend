@@ -116,8 +116,11 @@ export async function fetchUserInfo() {
     const token = cookieStore.get('auth_token')?.value;
     
     if (!token) {
+      console.log('No token found in cookies');
       return null;
     }
+    
+    console.log('Fetching user info with token...');
     
     const response = await api.get('/api/auth/user-info', {
       headers: {
@@ -125,32 +128,37 @@ export async function fetchUserInfo() {
       },
     });
     
+    console.log('User info response status:', response.status);
+    
     if (response.data.status === 'success') {
       return response.data.data;
     }
     
     return null;
-  } catch (error) {
-    console.error('Error fetching user info:', error);
+  } catch (error: any) {
+    console.error('Error fetching user info:', error.message);
+    console.error('Response status:', error.response?.status);
+    console.error('Response data:', error.response?.data);
     return null;
   }
 }
 
-
-// Get current user from cookie
+// Get current user from cookie (sync - faster)
 export async function getCurrentUser() {
   try {
     const cookieStore = await cookies();
     const userInfoCookie = cookieStore.get('user_info')?.value;
     
     if (!userInfoCookie) {
+      console.log('No user_info cookie found');
       return null;
     }
     
     const user = JSON.parse(userInfoCookie);
+    console.log('User from cookie:', user?.name);
     return user;
   } catch (error) {
-    console.error('Error getting user:', error);
+    console.error('Error getting user from cookie:', error);
     return null;
   }
 }
@@ -160,12 +168,14 @@ export async function isAuthenticated() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
-    return !!token;
+    const hasToken = !!token;
+    console.log('Auth check - token exists:', hasToken);
+    return hasToken;
   } catch (error) {
+    console.error('Auth check error:', error);
     return false;
   }
 }
-
 
 
 export async function refreshUserInfo() {

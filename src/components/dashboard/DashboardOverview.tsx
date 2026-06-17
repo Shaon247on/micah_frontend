@@ -22,14 +22,18 @@ import { useUser } from "@/context/UserContext";
 
 const COLORS = ["#8f3e1b", "#c25e28", "#e89e7c", "#faece5", "#f5d5c4"];
 
-interface DashboardOverviewProps { 
+interface DashboardOverviewProps {
+  user: {
+    name: string;
+  };
   data: DashboardData;
 }
 
 export default function DashboardOverview({
+  user,
   data,
 }: DashboardOverviewProps) {
-    const {user} = useUser()
+  // const {user} = useUser()
   const { stats, trafficData, serviceData, performanceData, cityData } = data;
 
   const formatNumber = (num: number) => {

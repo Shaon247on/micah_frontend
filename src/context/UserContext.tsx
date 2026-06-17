@@ -7,8 +7,9 @@ import React, {
   useEffect,
   ReactNode,
   useCallback,
+  useRef,
 } from "react";
-import { fetchUserInfo } from "@/actions/auth.actions";
+import { fetchUserInfo, getCurrentUser } from "@/actions/auth.actions";
 
 interface UserInfo {
   id: string;
@@ -37,38 +38,60 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const isMounted = useRef(true);
+  const loadAttempted = useRef(false);
 
-  const loadUserData = useCallback(async () => {
+  const loadUserData = useCallback(async (showLoading: boolean = true) => {
+    // Prevent multiple simultaneous loads
+    if (loadAttempted.current && !showLoading) {
+      return;
+    }
+    
     try {
-      // Only show loading on initial load
-      if (isInitialLoad) {
+      if (showLoading) {
         setIsLoading(true);
       }
-
-      const userData = await fetchUserInfo();
-      setUser(userData);
-
-      if (isInitialLoad) {
-        setIsInitialLoad(false);
+      
+      loadAttempted.current = true;
+      
+      // Try to get user from cookie first (faster)
+      let userData = await getCurrentUser();
+      
+      // If not in cookie or incomplete, fetch from API
+      if (!userData || !userData.id) {
+        userData = await fetchUserInfo();
+      }
+      
+      if (isMounted.current) {
+        setUser(userData);
       }
     } catch (error) {
       console.error("Error loading user data:", error);
-      setUser(null);
+      if (isMounted.current) {
+        setUser(null);
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  }, [isInitialLoad]);
+  }, []);
 
   useEffect(() => {
-    loadUserData();
+    // Load user data on mount
+    loadUserData(true);
+    
+    // Cleanup
+    return () => {
+      isMounted.current = false;
+    };
   }, [loadUserData]);
 
+  // Refresh user data (without showing loading)
   const refreshUser = useCallback(async () => {
-    // Don't show loading indicator on refresh
-    const userData = await fetchUserInfo();
-    setUser(userData);
-  }, []);
+    loadAttempted.current = false;
+    await loadUserData(false);
+  }, [loadUserData]);
 
   return (
     <UserContext.Provider value={{ user, isLoading, refreshUser }}>
