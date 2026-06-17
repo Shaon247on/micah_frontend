@@ -256,7 +256,7 @@ export function IndoorAirQualitySection() {
                   )}
                   {step === 4 && (
                     <motion.div key="iaq-s4" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={slideTransition}>
-                      <ConfirmationCard title="You're tentatively scheduled!" body="Our team will contact you shortly to confirm your appointment. Questions? Give us a call anytime." phone="Phone Number" onScheduleAnother={reset} />
+                      <ConfirmationCard title="You're tentatively scheduled!" body="Our team will contact you shortly to confirm your appointment. Questions? Give us a call anytime." phone="(630) 854 0372" onScheduleAnother={reset} />
                     </motion.div>
                   )}
                 </AnimatePresence>

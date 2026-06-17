@@ -1,7 +1,14 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { fetchUserInfo } from '@/actions/auth.actions';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
+import { fetchUserInfo } from "@/actions/auth.actions";
 
 interface UserInfo {
   id: string;
@@ -14,6 +21,9 @@ interface UserInfo {
   companyEmail?: string;
   companyPhone?: string;
   companyAddress?: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  twitterUrl?: string;
 }
 
 interface UserContextType {
@@ -35,15 +45,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (isInitialLoad) {
         setIsLoading(true);
       }
-      
+
       const userData = await fetchUserInfo();
       setUser(userData);
-      
+
       if (isInitialLoad) {
         setIsInitialLoad(false);
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error("Error loading user data:", error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -70,7 +80,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 export function useUser() {
   const context = useContext(UserContext);
   if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error("useUser must be used within a UserProvider");
   }
   return context;
 }

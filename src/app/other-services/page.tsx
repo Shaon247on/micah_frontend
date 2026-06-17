@@ -1,7 +1,8 @@
 import Link from "next/link";
 import OtherServicesSection from "@/components/features/home/OtherServicesSection";
-import { WaterQualitySection } from "@/components/dashboard/WaterQualitySection";
-import { IndoorAirQualitySection } from "@/components/dashboard/IndoorAirQualitySection";
+import { WaterQualitySection } from "@/components/dashboard/otherServices/WaterQuality/WaterQualitySection";
+import { IndoorAirQualitySection } from "@/components/dashboard/otherServices/indoorAirQuality/IndoorAirQualitySection";
+// import { IndoorAirQualitySection } from "@/components/dashboard/IndoorAirQualitySection";
 
 export default function OtherServicesPage() {
   return (
@@ -36,7 +37,8 @@ export default function OtherServicesPage() {
 
       <OtherServicesSection />
       <WaterQualitySection />
-      <IndoorAirQualitySection />
+      {/* <IndoorAirQualitySection /> */}
+      <IndoorAirQualitySection/>
     </main>
   );
 }

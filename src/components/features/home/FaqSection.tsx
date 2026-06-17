@@ -4,27 +4,39 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
-const faqs = [
-  {
-    question: "How quickly can I get a new system quote?",
-    answer: "Most customers get an instant estimate in about 10 seconds. We then follow up with a custom recommendation based on your home and comfort goals.",
-  },
-  {
-    question: "Do you repair older systems or only replace them?",
-    answer: "We evaluate your system honestly. If repair or a tune-up is the best value, we recommend that first. If replacement makes more sense, we explain why.",
-  },
-  {
-    question: "What services are included in A/C Rejuvenation?",
-    answer: "A/C Rejuvenation restores worn components, cleans the system, and improves reliability so you can get more life from your current equipment.",
-  },
-  {
-    question: "Do you offer water quality and indoor air quality services?",
-    answer: "Yes. We provide both water treatment and indoor air quality solutions to help your home feel healthier and more comfortable.",
-  },
-];
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  order: number;
+  isActive: boolean;
+}
 
-export default function FaqSection() {
+interface FaqSectionProps {
+  faqs?: FAQ[];
+}
+
+export default function FaqSection({ faqs = [] }: FaqSectionProps) {
   const [openIndex, setOpenIndex] = useState(0);
+
+  // If no FAQs are provided, show a message
+  if (!faqs || faqs.length === 0) {
+    return (
+      <section id="faq" className="w-full bg-[#F8F9FB] py-16 md:py-24 scroll-mt-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#E07B3F]">FAQ</span>
+            <h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#121F37] leading-tight">
+              Answers to the questions homeowners ask most.
+            </h2>
+            <p className="mt-4 text-lg text-[#6B6B6B] leading-8">
+              No FAQs available at the moment. Please check back later.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="faq" className="w-full bg-[#F8F9FB] py-16 md:py-24 scroll-mt-20">
@@ -50,7 +62,7 @@ export default function FaqSection() {
             const open = index === openIndex;
             return (
               <motion.div
-                key={faq.question}
+                key={faq.id}
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

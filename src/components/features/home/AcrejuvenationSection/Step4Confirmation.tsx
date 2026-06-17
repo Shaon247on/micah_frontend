@@ -9,7 +9,9 @@ interface Step4ConfirmationProps {
   onScheduleAnother: () => void;
 }
 
-export function Step4Confirmation({ onScheduleAnother }: Step4ConfirmationProps) {
+export function Step4Confirmation({
+  onScheduleAnother,
+}: Step4ConfirmationProps) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.97 }}
@@ -21,7 +23,12 @@ export function Step4Confirmation({ onScheduleAnother }: Step4ConfirmationProps)
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.15, duration: 0.4, type: "spring", stiffness: 200 }}
+        transition={{
+          delay: 0.15,
+          duration: 0.4,
+          type: "spring",
+          stiffness: 200,
+        }}
         className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50"
       >
         <CheckCircle2 className="h-8 w-8 text-emerald-500" />
@@ -55,7 +62,7 @@ export function Step4Confirmation({ onScheduleAnother }: Step4ConfirmationProps)
         aria-disabled="true"
       >
         <Phone className="h-5 w-5" />
-        Phone Number
+        (630) 854 0372
       </motion.a>
 
       <motion.div

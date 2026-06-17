@@ -22,7 +22,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from '@/context/UserContext';
 
-
 interface CompanyInfoFormProps {
   initialData: CompanySettings;
   onSuccess: () => void;
@@ -46,7 +45,8 @@ export function CompanyInfoForm({
   const [logoPreview, setLogoPreview] = useState(initialData.companyLogo || "");
   const [isDeletingLogo, setIsDeletingLogo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-const { refreshUser } = useUser();
+  const { refreshUser } = useUser();
+
   const {
     register,
     handleSubmit,
@@ -86,43 +86,43 @@ const { refreshUser } = useUser();
   }, [initialData, reset]);
 
   const handleLogoUpload = async (file: File) => {
-  // Check file size (10MB)
-  if (file.size > 10 * 1024 * 1024) {
-    toast.error('File size must be less than 10MB');
-    return;
-  }
-  
-  setIsUploadingLogo(true);
-
-  try {
-    // Use FormData for file upload
-    const formData = new FormData();
-    formData.append('logo', file);
+    // ✅ Check file size (1MB limit)
+    const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB in bytes
     
-    // Direct API call to backend (bypass server action)
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/company-settings/upload-logo`, {
-      method: 'POST',
-      credentials: "include",
-      body: formData,
-    });
-    
-    const result = await response.json();
-    
-    if (result.status === 'success' && result.logoUrl) {
-      setLogoPreview(result.logoUrl);
-      setValue('companyLogo', result.logoUrl);
-      toast.success('Logo uploaded successfully');
-      onSuccess();
-    } else {
-      toast.error(result.message || 'Failed to upload logo');
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('File size must be less than 1MB. Please compress your image and try again.');
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
     }
-  } catch (error: any) {
-    console.error('Upload error:', error);
-    toast.error(error.message || 'Failed to upload logo');
-  } finally {
-    setIsUploadingLogo(false);
-  }
-};
+
+    setIsUploadingLogo(true);
+
+    try {
+      // Convert file to base64
+      const base64Data = await fileToBase64(file);
+      
+      // Use the server action
+      const result = await uploadLogo(base64Data, file.name);
+
+      if (result.status === 'success' && result.logoUrl) {
+        setLogoPreview(result.logoUrl);
+        setValue('companyLogo', result.logoUrl);
+        toast.success('Logo uploaded successfully');
+        await refreshUser();
+        onSuccess();
+      } else {
+        toast.error(result.message || 'Failed to upload logo');
+      }
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload logo');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
 
   const handleDeleteLogo = async () => {
     setIsDeletingLogo(true);
@@ -145,7 +145,7 @@ const { refreshUser } = useUser();
     }
   };
 
-   const onSubmit = async (data: CompanySettingsInput) => {
+  const onSubmit = async (data: CompanySettingsInput) => {
     const cleanedData = {
       companyName: data.companyName,
       contactEmail: data.contactEmail,
@@ -158,15 +158,15 @@ const { refreshUser } = useUser();
       instagramUrl: data.instagramUrl || null,
       linkedinUrl: data.linkedinUrl || null,
     };
-    
+
     const result = await updateCompanySettings(cleanedData);
-    
+
     if (result.status === 'success') {
       toast.success('Company settings updated successfully');
-      
+
       // Refresh user data from API
       await refreshUser();
-      
+
       onSuccess();
     } else {
       toast.error(result.message || 'Failed to update company settings');
@@ -241,8 +241,7 @@ const { refreshUser } = useUser();
               {isUploadingLogo ? "Uploading..." : "Upload Logo"}
             </Button>
             <p className="text-xs text-gray-400">
-              Recommended size: 256x256px. Max 1MB. Supported: JPG, PNG, WEBP,
-              SVG
+              Recommended size: 256x256px. Max 1MB. Supported: JPG, PNG, WEBP, SVG
             </p>
           </div>
         </div>

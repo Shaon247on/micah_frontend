@@ -1,13 +1,12 @@
-"use client";
+'use client';
 
-import { AnimatePresence, motion } from "framer-motion";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useScheduleForm } from "./useScheduleForm";
-import { StepDots } from "./StepDots";
-import { Step1Symptoms } from "./Step1Symptoms";
-import { Step2DatePicker } from "./Step2DatePicker";
-import { Step3ContactForm } from "./Step3ContactForm";
-import { Step4Confirmation } from "./Step4Confirmation";
+import { AnimatePresence, motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { useScheduleForm } from './useScheduleForm';
+import { Step1Symptoms } from './Step1Symptoms';
+import { Step2DatePicker } from './Step2DatePicker';
+import { Step3ContactForm } from './Step3ContactForm';
+import { Step4Confirmation } from './Step4Confirmation';
 
 const TOTAL_STEPS = 3;
 
@@ -18,7 +17,7 @@ const stepVariants = {
 };
 
 export function SchedulingCard() {
-  const { step, formData, toggleSymptom, updateField, goToStep, reset } =
+  const { step, formData, isSubmitting, updateField, goToStep, reset, handleSubmit } =
     useScheduleForm();
 
   return (
@@ -36,8 +35,7 @@ export function SchedulingCard() {
             >
               <Step1Symptoms
                 formData={formData}
-                onToggleSymptom={toggleSymptom}
-                onSelectAge={(age) => updateField("age", age)}
+                onUpdateField={updateField}
                 onNext={() => goToStep(2)}
               />
             </motion.div>
@@ -54,7 +52,7 @@ export function SchedulingCard() {
             >
               <Step2DatePicker
                 formData={formData}
-                onSelectDate={(date) => updateField("date", date)}
+                onUpdateField={updateField}
                 onNext={() => goToStep(3)}
                 onBack={() => goToStep(1)}
               />
@@ -73,8 +71,9 @@ export function SchedulingCard() {
               <Step3ContactForm
                 formData={formData}
                 onUpdateField={updateField}
-                onSubmit={() => goToStep(4)}
+                onSubmit={handleSubmit}
                 onBack={() => goToStep(2)}
+                isSubmitting={isSubmitting}
               />
             </motion.div>
           )}

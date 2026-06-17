@@ -1,7 +1,23 @@
 import Link from "next/link";
 import FaqSection from "@/components/features/home/FaqSection";
+import { Metadata } from "next";
+import { getFAQs } from "@/actions/faq.actions";
 
-export default function FaqPage() {
+export const metadata: Metadata = {
+  title: 'FAQ | HVAC Service',
+  description: 'Frequently asked questions about our HVAC services',
+};
+
+export default async function FaqPage() {
+    const result = await getFAQs({ 
+    limit: 100, 
+    isActive: true 
+  });
+  
+  // Get FAQs from response or use empty array
+  const faqs = result.data?.faqs || [];
+
+
   return (
     <main className="bg-white">
       <section className="bg-linear-to-b from-[#E07B3F]/10 to-white py-20">
@@ -32,7 +48,7 @@ export default function FaqPage() {
         </div>
       </section>
 
-      <FaqSection />
+      <FaqSection faqs={faqs}/>
     </main>
   );
 }

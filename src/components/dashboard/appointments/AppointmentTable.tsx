@@ -113,9 +113,9 @@ export function AppointmentTable({
   const [serviceFilter, setServiceFilter] = useState(
     searchParams.get("service") || "all",
   );
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] =
-    useState<Appointment | null>(null);
+  // const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // const [selectedAppointment, setSelectedAppointment] =
+  //   useState<Appointment | null>(null);
 
   // Debounce search term (500ms delay)
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -206,19 +206,19 @@ export function AppointmentTable({
     [router],
   );
 
-  const handleDelete = useCallback(async () => {
-    if (!selectedAppointment) return;
+  // const handleDelete = useCallback(async () => {
+  //   if (!selectedAppointment) return;
 
-    const result = await deleteAppointment(selectedAppointment.id);
-    if (result.status === "success") {
-      toast.success("Appointment deleted successfully");
-      router.refresh();
-    } else {
-      toast.error(result.message || "Failed to delete appointment");
-    }
-    setDeleteDialogOpen(false);
-    setSelectedAppointment(null);
-  }, [selectedAppointment, router]);
+  //   const result = await deleteAppointment(selectedAppointment.id);
+  //   if (result.status === "success") {
+  //     toast.success("Appointment deleted successfully");
+  //     router.refresh();
+  //   } else {
+  //     toast.error(result.message || "Failed to delete appointment");
+  //   }
+  //   setDeleteDialogOpen(false);
+  //   setSelectedAppointment(null);
+  // }, [selectedAppointment, router]);
 
   const formatDate = (dateString: string): string => {
     if (!dateString) return "N/A";
@@ -453,7 +453,7 @@ export function AppointmentTable({
                             <XCircle className="mr-2 h-4 w-4 text-red-600" />
                             Cancel
                           </DropdownMenuItem>
-                          <DropdownMenuItem
+                          {/* <DropdownMenuItem
                             onClick={() => {
                               setSelectedAppointment(appointment);
                               setDeleteDialogOpen(true);
@@ -462,7 +462,7 @@ export function AppointmentTable({
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -533,7 +533,7 @@ export function AppointmentTable({
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      {/* <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -546,13 +546,13 @@ export function AppointmentTable({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
+      </AlertDialog> */}
     </div>
   );
 }

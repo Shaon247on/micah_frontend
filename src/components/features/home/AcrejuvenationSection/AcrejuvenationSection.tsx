@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { SectionHeader } from "./SectionHeader";
 import { PhotoGrid } from "./PhotoGrid";
-import { CreditCard } from "./CreditCard";
 import { SchedulingCard } from "./SchedulingCard";
 
 export default function AcRejuvenationSection() {

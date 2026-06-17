@@ -181,7 +181,7 @@ export default function HowWeWorkSection() {
               className="inline-flex items-center justify-center rounded-full bg-[#E07B3F] px-6 py-3 text-sm font-semibold uppercase text-white transition hover:bg-[#DE7142]"
               aria-disabled="true"
             >
-              Phone Number
+              (630) 854 0372
             </a>
             <a
               href="#new-system-quote"

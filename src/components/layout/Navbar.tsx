@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Menu, X, ChevronDown, Phone } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
 type NavChild = { name: string; href: string };
 type NavItem = { name: string; href: string; children?: NavChild[] };
@@ -23,8 +24,14 @@ const navItems: NavItem[] = [
     name: "Other Services",
     href: "/other-services",
     children: [
-      { name: "Water Quality Solutions", href: "/other-services#water-quality" },
-      { name: "Indoor Air Quality", href: "/other-services#indoor-air-quality" },
+      {
+        name: "Water Quality Solutions",
+        href: "/other-services#water-quality",
+      },
+      {
+        name: "Indoor Air Quality",
+        href: "/other-services#indoor-air-quality",
+      },
     ],
   },
   { name: "How We Work", href: "/how-we-work" },
@@ -39,17 +46,18 @@ export default function Navbar() {
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
   const prevPathname = useRef(pathname);
+  const { user } = useUser();
 
-  // Close on route change — compare in ref to avoid setState-in-effect lint warning
+  // Close on route change
   useEffect(() => {
     if (prevPathname.current !== pathname) {
       prevPathname.current = pathname;
       setMenuOpen(false);
       setDropdownOpen(null);
     }
-  });
+  }, [pathname]);
 
-  // Close on outside click (only while drawer is open)
+  // Close on outside click
   const closeMenu = useCallback(() => {
     setMenuOpen(false);
     setDropdownOpen(null);
@@ -84,26 +92,30 @@ export default function Navbar() {
   return (
     <header
       ref={menuRef}
-      className="sticky top-0 z-50 bg-(--primary) border-b border-(--primary-light)/80"
+      className="sticky top-0 z-50 bg-[#362110] border-b border-[#121F37]/80"
     >
       {/* ── Main bar ── */}
       <div className="max-w-360 mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16 sm:h-18">
-
-        {/* Logo */}
-        <Link href="/" className="inline-flex items-center gap-2.5 shrink-0">
+        {/* ✅ Logo - Always redirects to home */}
+        <Link 
+          href="/" 
+          className="inline-flex items-center gap-2.5 shrink-0 hover:opacity-80 transition-opacity"
+          onClick={() => {
+            // Ensure it navigates to home
+            window.location.href = '/';
+          }}
+        >
           <Image
-            src="/images/logo.png"
-            alt="Honest HVAC Services logo"
+            src={user?.companyLogo ?? "/images/logo.png"}
+            alt={user?.companyName ?? "Honest HVAC Services logo"}
             width={70}
             height={40}
             className="w-[52px] h-auto sm:w-[62px] lg:w-[70px]"
+            priority
           />
           <span className="flex flex-col leading-tight">
-            <span className="font-semibold text-white font-poppins text-base sm:text-lg leading-5">
-              Honest
-            </span>
-            <span className="text-(--secondary) text-xs sm:text-sm font-poppins font-medium">
-              HVAC Services
+            <span className="font-semibold text-[#E07B3F] font-poppins text-base sm:text-lg leading-5 text-wrap max-w-36">
+              {user?.companyName ?? "HVAC Service"}
             </span>
           </span>
         </Link>
@@ -124,7 +136,7 @@ export default function Navbar() {
 
               {item.children && (
                 <div className="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 pointer-events-none group-hover:pointer-events-auto">
-                  <div className="rounded-xl bg-(--primary-light) border border-white/10 shadow-xl py-2 min-w-52">
+                  <div className="rounded-xl bg-[#362110] border border-white/10 shadow-xl py-2 min-w-52">
                     {item.children.map((child) => (
                       <Link
                         key={child.name}
@@ -144,15 +156,15 @@ export default function Navbar() {
         {/* ── Desktop CTA ── */}
         <div className="hidden xl:flex items-center gap-3 shrink-0">
           <a
-            href="tel:0000000000"
+            href={`tel:${user?.companyPhone || '0000000000'}`}
             className="flex items-center gap-1.5 text-sm font-semibold text-white/80 hover:text-white transition"
           >
             <Phone className="h-3.5 w-3.5" />
-            <span>Phone Number</span>
+            <span>{user?.companyPhone || 'Call Us'}</span>
           </a>
           <Link
-            href="/#new-system-quote"
-            className="rounded-full bg-(--secondary) px-5 py-2 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#f86a32] whitespace-nowrap"
+            href="/hvac-estimate"
+            className="rounded-full bg-[#E07B3F] px-5 py-2 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-[#d66b2f] whitespace-nowrap"
           >
             Schedule Service
           </Link>
@@ -176,8 +188,8 @@ export default function Navbar() {
           <TabletMoreMenu navItems={navItems} />
 
           <Link
-            href="/#new-system-quote"
-            className="ml-2 rounded-full bg-(--secondary) px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white hover:bg-[#f86a32] transition whitespace-nowrap"
+            href="/hvac-estimate"
+            className="ml-2 rounded-full bg-[#E07B3F] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white hover:bg-[#d66b2f] transition whitespace-nowrap"
           >
             Schedule
           </Link>
@@ -201,7 +213,7 @@ export default function Navbar() {
           menuOpen ? "max-h-[100dvh] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="border-t border-white/10 bg-(--primary)/98 px-4 pb-6 pt-3 text-white">
+        <div className="border-t border-white/10 bg-[#362110]/98 px-4 pb-6 pt-3 text-white">
           <div className="flex flex-col gap-1">
             {navItems.map((item) => (
               <div key={item.name}>
@@ -257,15 +269,15 @@ export default function Navbar() {
           {/* Mobile CTAs */}
           <div className="mt-4 flex flex-col gap-3">
             <a
-              href="tel:0000000000"
+              href={`tel:${user?.companyPhone || '0000000000'}`}
               className="flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10 transition"
             >
               <Phone className="h-4 w-4 opacity-70" />
-              Phone Number
+              {user?.companyPhone || 'Call Us'}
             </a>
             <Link
-              href="/#new-system-quote"
-              className="rounded-xl bg-(--secondary) px-4 py-3 text-center text-sm font-bold uppercase tracking-wide text-white hover:bg-[#f86a32] transition"
+              href="/hvac-estimate"
+              className="rounded-xl bg-[#E07B3F] px-4 py-3 text-center text-sm font-bold uppercase tracking-wide text-white hover:bg-[#d66b2f] transition"
               onClick={closeMenu}
             >
               Schedule Service
@@ -323,7 +335,7 @@ function TabletMoreMenu({ navItems }: TabletMoreMenuProps) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-1 rounded-xl bg-(--primary-light) border border-white/10 shadow-xl py-2 min-w-56 z-50"
+          className="absolute right-0 top-full mt-1 rounded-xl bg-[#362110] border border-white/10 shadow-xl py-2 min-w-56 z-50"
         >
           {hiddenItems.map((item) => (
             <div key={item.name}>

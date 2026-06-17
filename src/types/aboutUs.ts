@@ -24,3 +24,5 @@ export interface AboutUsUpdateResponse {
   message: string;
   data?: AboutUsStory;
 }
+
+

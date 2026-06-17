@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HvacServicesSection } from "@/components/dashboard/HvacServicesSection";
 import AcRejuvenationSection from "@/components/features/home/AcrejuvenationSection/AcrejuvenationSection";
 import { RepairOrReplaceSection } from "@/components/dashboard/RepairOrReplaceSection";
+import { RepairTuneUpSection } from "@/components/dashboard/settings/RepairTuneUpSection";
 
 export default function HvacServicesPage() {
   return (
@@ -37,8 +38,9 @@ export default function HvacServicesPage() {
         </div>
       </section>
 
-      <HvacServicesSection />
+      {/* <HvacServicesSection /> */}
       <AcRejuvenationSection />
+      <RepairTuneUpSection/>
       <RepairOrReplaceSection />
     </main>
   );

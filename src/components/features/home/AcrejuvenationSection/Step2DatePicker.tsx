@@ -1,18 +1,20 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import { ArrowRight, ChevronLeft, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-
-import { cn } from "@/lib/utils";
-import { ScheduleFormData } from "@/data";
-import { StepDots } from "./StepDots";
-import { MiniCalendar } from "./MiniCalendar";
+import { motion } from 'framer-motion';
+import { ArrowRight, ChevronLeft, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+import { ScheduleFormData } from '@/data';
+import { StepDots } from './StepDots';
+import { MiniCalendar } from './MiniCalendar';
 
 interface Step2DatePickerProps {
   formData: ScheduleFormData;
-  onSelectDate: (date: Date | "asap") => void;
+  onUpdateField: <K extends keyof ScheduleFormData>(
+    key: K,
+    value: ScheduleFormData[K]
+  ) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -28,12 +30,16 @@ const fadeUp = {
 
 export function Step2DatePicker({
   formData,
-  onSelectDate,
+  onUpdateField,
   onNext,
   onBack,
 }: Step2DatePickerProps) {
-  const isAsap = formData.date === "asap";
-  const hasDate = !!formData.date;
+  const isAsap = formData.preferredDate === 'asap';
+  const hasDate = !!formData.preferredDate;
+
+  const handleDateSelect = (date: Date | 'asap') => {
+    onUpdateField('preferredDate', date);
+  };
 
   return (
     <motion.div
@@ -47,7 +53,7 @@ export function Step2DatePicker({
           Schedule your Rejuvenation
         </h3>
         <p className="mt-1.5 text-sm leading-relaxed text-[#6B6B6B]">
-          Our team will contact you to confirm your appointment.
+          Choose your preferred date
         </p>
         <StepDots total={3} current={2} className="mt-4" />
       </motion.div>
@@ -66,24 +72,24 @@ export function Step2DatePicker({
         variants={fadeUp}
         custom={0.1}
         type="button"
-        onClick={() => onSelectDate("asap")}
+        onClick={() => handleDateSelect('asap')}
         className={cn(
-          "flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DE7B42]/50",
+          'flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DE7B42]/50',
           isAsap
-            ? "border-[#DE7B42] bg-[#FEF0E8]"
-            : "border-[#D7DCE5] bg-white hover:border-[#DE7B42]/50"
+            ? 'border-[#DE7B42] bg-[#FEF0E8]'
+            : 'border-[#D7DCE5] bg-white hover:border-[#DE7B42]/50'
         )}
       >
         <Zap
-          className={cn("h-5 w-5", isAsap ? "text-[#DE7B42]" : "text-[#6B6B6B]")}
+          className={cn('h-5 w-5', isAsap ? 'text-[#DE7B42]' : 'text-[#6B6B6B]')}
         />
         <span
           className={cn(
-            "text-sm font-bold",
-            isAsap ? "text-[#DE7B42]" : "text-[#121F37]"
+            'text-sm font-bold',
+            isAsap ? 'text-[#DE7B42]' : 'text-[#121F37]'
           )}
         >
-          As soon as possible – today
+          As soon as possible
         </span>
       </motion.button>
 
@@ -101,22 +107,10 @@ export function Step2DatePicker({
       {/* Calendar */}
       <motion.div variants={fadeUp} custom={0.2}>
         <MiniCalendar
-          selected={formData.date instanceof Date ? formData.date : null}
-          onSelect={onSelectDate}
+          selected={formData.preferredDate instanceof Date ? formData.preferredDate : null}
+          onSelect={(date) => handleDateSelect(date)}
         />
       </motion.div>
-
-      {/* Preview */}
-      {hasDate && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mt-4"
-        >
-          {/* <DatePreviewBadge date={formData.date} /> */}
-        </motion.div>
-      )}
 
       {/* Navigation */}
       <motion.div

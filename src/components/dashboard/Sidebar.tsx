@@ -19,7 +19,6 @@ const navItems = [
     name: "Quote Requests",
     path: "/dashboard/quote-requests",
     icon: FileText,
-    badge: 3,
   },
   // { name: 'Services', path: '/dashboard/services', icon: Wrench },
   { name: "FAQ", path: "/dashboard/faq", icon: HelpCircle },
@@ -44,7 +43,7 @@ export default function Sidebar({ onLinkClick }: SidebarProps) {
             height={100}
             alt="Company Logo"
             src={user?.companyLogo || "/images/logo.png"}
-            className="size-12"
+            className="size-12 rounded-lg"
           />
           <h3 className="leading-4 text-sm font-semibold text-orange-600 text-wrap max-w-36">
             {user?.companyName}
@@ -64,11 +63,6 @@ export default function Sidebar({ onLinkClick }: SidebarProps) {
             >
               <item.icon className="mr-3" size={20} />
               <span className="flex-1 text-sm">{item.name}</span>
-              {item.badge && (
-                <span className="bg-(--color-primary) text-white text-[0.75rem] px-2 py-0.5 rounded-full font-semibold">
-                  {item.badge}
-                </span>
-              )}
             </Link>
           );
         })}
@@ -80,7 +74,10 @@ export default function Sidebar({ onLinkClick }: SidebarProps) {
             width={40}
             height={40}
             className="w-10 h-10 rounded-full mr-3"
-            src={user?.avatar ?? "https://i.pinimg.com/736x/96/e2/a7/96e2a7d987ce19f693d39f131cda092a.jpg"}
+            src={
+              user?.avatar ??
+              "https://i.pinimg.com/736x/96/e2/a7/96e2a7d987ce19f693d39f131cda092a.jpg"
+            }
             alt={user?.name || "avater Image"}
           />
           <div className="flex-1 flex flex-col">

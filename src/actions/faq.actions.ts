@@ -2,9 +2,8 @@
 
 import { cookies } from 'next/headers';
 import api from '@/lib/axios';
-import { FAQResponse, FAQSingleResponse, FAQMutationResponse, FAQ } from '@/types/faq';
+import { FAQResponse, FAQMutationResponse } from '@/types/faq';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function getFAQs(params?: {
   page?: number;

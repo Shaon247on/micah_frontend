@@ -558,7 +558,7 @@ export function AppointmentDetails({ appointment }: AppointmentDetailsProps) {
                 <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                 <SelectItem value="COMPLETED">Completed</SelectItem>
                 <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                <SelectItem value="RESCHEDULED">Rescheduled</SelectItem>
+                {/* <SelectItem value="RESCHEDULED">Rescheduled</SelectItem> */}
               </SelectContent>
             </Select>
           </div>

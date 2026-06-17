@@ -10,6 +10,7 @@ import HashRedirect from "@/components/layout/HashRedirect";
 import FloatingMessenger from "@/components/ui/FloatingMessenger";
 import { Toaster } from "sonner";
 import { UserProvider } from "@/context/UserContext";
+import { ChatBot } from "@/components/chat/ChatBot";
 
 const poppins = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -43,7 +44,8 @@ export default function RootLayout({
           <HashRedirect />
           {children}
           <Toaster />
-          <FloatingMessenger />
+          {/* <FloatingMessenger /> */}
+          <ChatBot />
           <Footer />
         </UserProvider>
       </body>

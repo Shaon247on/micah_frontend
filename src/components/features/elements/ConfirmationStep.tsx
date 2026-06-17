@@ -179,7 +179,7 @@ export function ConfirmationStep({
 
       {/* Support line */}
       <p className="text-center text-xs text-[#6B6B6B]">
-        Need to make changes or have questions? Contact us at <strong className="text-[#121F37]">Phone Number</strong>
+        Need to make changes or have questions? Contact us at <strong className="text-[#121F37]">(630) 854 0372</strong>
       </p>
 
       <div className="max-w-2xs mx-auto">
