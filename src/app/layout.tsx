@@ -11,6 +11,7 @@ import FloatingMessenger from "@/components/ui/FloatingMessenger";
 import { Toaster } from "sonner";
 import { UserProvider } from "@/context/UserContext";
 import { ChatBot } from "@/components/chat/ChatBot";
+import { CompanyProvider } from "@/context/CompanyContext";
 
 const poppins = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -39,15 +40,17 @@ export default function RootLayout({
       className={`${poppins.variable} ${inter.variable} ${barlowCondensed.variable} h-full antialiased font-inter`}
     >
       <body className="min-h-full flex flex-col scroll-smooth">
-        <UserProvider>
-          <Navbar />
-          <HashRedirect />
-          {children}
-          <Toaster />
-          {/* <FloatingMessenger /> */}
-          <ChatBot />
-          <Footer />
-        </UserProvider>
+        <CompanyProvider>
+          <UserProvider>
+            <Navbar />
+            <HashRedirect />
+            {children}
+            <Toaster />
+            {/* <FloatingMessenger /> */}
+            <ChatBot />
+            <Footer />
+          </UserProvider>
+        </CompanyProvider>
       </body>
     </html>
   );

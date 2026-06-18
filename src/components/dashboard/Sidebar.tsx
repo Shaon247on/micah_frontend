@@ -9,6 +9,7 @@ import {
   Info,
   Settings,
   Newspaper,
+  Calculator,
 } from "lucide-react";
 import Image from "next/image";
 import { LogoutButton } from "../auth/LogoutButton";
@@ -25,6 +26,11 @@ const navItems = [
   { name: "FAQ", path: "/dashboard/faq", icon: HelpCircle },
   { name: "About Us", path: "/dashboard/about", icon: Info },
   { name: "Blogs Management", path: "/dashboard/blogs", icon: Newspaper },
+  {
+    name: "HVAC Estimate Settings",
+    path: "/dashboard/hvac-estimate-settings",
+    icon: Calculator,
+  },
   { name: "Settings", path: "/dashboard/settings", icon: Settings },
 ];
 

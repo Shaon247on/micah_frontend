@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Menu, X, ChevronDown, Phone } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useUser } from "@/context/UserContext";
+import { useCompany } from "@/context/CompanyContext";
 
 type NavChild = { name: string; href: string };
 type NavItem = { name: string; href: string; children?: NavChild[] };
@@ -46,8 +46,10 @@ export default function Navbar() {
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
   const prevPathname = useRef(pathname);
-  const { user } = useUser();
+  const { company } = useCompany();
 
+
+  console.log("the user of nav:", company)
   // Close on route change
   useEffect(() => {
     if (prevPathname.current !== pathname) {
@@ -106,16 +108,16 @@ export default function Navbar() {
           }}
         >
           <Image
-            src={user?.companyLogo ?? "/images/logo.png"}
-            alt={user?.companyName ?? "Honest HVAC Services logo"}
+            src={company?.companyLogo ?? "/images/logo.png"}
+            alt={company?.companyName ?? "Honest HVAC Services logo"}
             width={70}
             height={40}
-            className="w-[52px] h-auto sm:w-[62px] lg:w-[70px]"
+            className="w-13 h-auto sm:w-15.5 lg:w-16 rounded-lg"
             priority
           />
           <span className="flex flex-col leading-tight">
             <span className="font-semibold text-[#E07B3F] font-poppins text-base sm:text-lg leading-5 text-wrap max-w-36">
-              {user?.companyName ?? "HVAC Service"}
+              {company?.companyName ?? "HVAC Service"}
             </span>
           </span>
         </Link>
@@ -156,11 +158,11 @@ export default function Navbar() {
         {/* ── Desktop CTA ── */}
         <div className="hidden xl:flex items-center gap-3 shrink-0">
           <a
-            href={`tel:${user?.companyPhone || '0000000000'}`}
+            href={`tel:${company?.contactPhone || '0000000000'}`}
             className="flex items-center gap-1.5 text-sm font-semibold text-white/80 hover:text-white transition"
           >
             <Phone className="h-3.5 w-3.5" />
-            <span>{user?.companyPhone || 'Call Us'}</span>
+            <span>{company?.contactPhone || 'Call Us'}</span>
           </a>
           <Link
             href="/hvac-estimate"
@@ -210,7 +212,7 @@ export default function Navbar() {
       {/* ── Mobile drawer ── */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-          menuOpen ? "max-h-[100dvh] opacity-100" : "max-h-0 opacity-0"
+          menuOpen ? "max-h-dvh opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <div className="border-t border-white/10 bg-[#362110]/98 px-4 pb-6 pt-3 text-white">
@@ -269,11 +271,11 @@ export default function Navbar() {
           {/* Mobile CTAs */}
           <div className="mt-4 flex flex-col gap-3">
             <a
-              href={`tel:${user?.companyPhone || '0000000000'}`}
+              href={`tel:${company?.contactPhone || '0000000000'}`}
               className="flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10 transition"
             >
               <Phone className="h-4 w-4 opacity-70" />
-              {user?.companyPhone || 'Call Us'}
+              {company?.contactPhone || 'Call Us'}
             </a>
             <Link
               href="/hvac-estimate"

@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getBlogs, getBlogCategories } from '@/actions/blog.actions';
+import { getActiveBlogs, getBlogCategories } from '@/actions/blog.actions';
 import BlogsPageClient from '@/components/features/blog/BlogsPageClient';
 
 export const metadata: Metadata = {
@@ -22,9 +22,11 @@ export default async function BlogsPage({ searchParams }: PageProps) {
   const search = params.search;
   
   const [blogsResult, categoriesResult] = await Promise.all([
-    getBlogs({ page, limit: 9, category, search, isActive: true }),
+    getActiveBlogs({ page, limit: 9, category, search }),
     getBlogCategories(),
   ]);
+
+ console.log("the blog post:",blogsResult)
 
   return (
     <BlogsPageClient

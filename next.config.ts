@@ -20,8 +20,11 @@ const nextConfig: NextConfig = {
   // ✅ Correct experimental config for server actions
   experimental: {
     serverActions: {
-      bodySizeLimit: '10mb',
+      bodySizeLimit: "10mb",
     },
+  },
+  turbopack: {
+    root: __dirname,
   },
 
   async headers() {

@@ -19,6 +19,8 @@ interface FaqSectionProps {
 export default function FaqSection({ faqs = [] }: FaqSectionProps) {
   const [openIndex, setOpenIndex] = useState(0);
 
+  console.log("the faqs",faqs)
+
   // If no FAQs are provided, show a message
   if (!faqs || faqs.length === 0) {
     return (

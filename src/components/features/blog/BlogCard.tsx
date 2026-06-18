@@ -3,11 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BlogPost } from "@/types/blog.types";
+import { Blog } from "@/types/blog.types";
 import { Calendar, User, Clock } from "lucide-react";
 
 interface BlogCardProps {
-  blog: BlogPost;
+  blog: Blog;
 }
 
 export default function BlogCard({ blog }: BlogCardProps) {
@@ -22,7 +22,7 @@ export default function BlogCard({ blog }: BlogCardProps) {
       <Link href={`/blogs/${blog.slug}`} className="group">
         <div className="relative h-64 w-full overflow-hidden bg-gray-200">
           <Image
-            src={blog.image}
+            src={blog?.image || "https://i.pinimg.com/736x/9d/b2/aa/9db2aad95c7d5601364151f36f551ff4.jpg"}
             alt={blog.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"

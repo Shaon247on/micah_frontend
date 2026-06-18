@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { BlogPost } from "@/types/blog.types";
-import { Calendar, User, Clock } from "lucide-react";
+import Image from 'next/image';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { RelatedBlog } from '@/types/blog.types';
+import { Calendar, Clock } from 'lucide-react';
 
 interface RelatedBlogsProps {
-  blogs: BlogPost[];
+  blogs: RelatedBlog[];  // ✅ Use the slim type
 }
 
 export default function RelatedBlogs({ blogs }: RelatedBlogsProps) {
@@ -30,16 +30,17 @@ export default function RelatedBlogs({ blogs }: RelatedBlogsProps) {
             <Link href={`/blogs/${blog.slug}`} className="group">
               <div className="relative h-48 w-full overflow-hidden bg-gray-200">
                 <Image
-                  src={blog.image}
+                  src={blog.image || "https://i.pinimg.com/736x/9d/b2/aa/9db2aad95c7d5601364151f36f551ff4.jpg"}
                   alt={blog.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  unoptimized
                 />
               </div>
             </Link>
 
             <div className="p-4">
-              <span className="inline-block text-[#E07B3F] text-xs font-semibold uppercase tracking-[0.1em] mb-2">
+              <span className="inline-block text-[#E07B3F] text-xs font-semibold uppercase tracking-widest mb-2">
                 {blog.category}
               </span>
 

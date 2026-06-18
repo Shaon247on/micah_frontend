@@ -1,16 +1,22 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Minus, Plus, Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import {
-  MOCK_SYSTEMS,
-  type HvacSystem,
-  formatCurrency,
-} from "@/types/hvacQuote.types";
+import { useState, useEffect } from 'react';
+import { Minus, Plus, Info, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { formatCurrency, type HvacSystem } from '@/types/hvacQuote.types';
+import { calculatePrices } from '@/actions/hvacEstimate.actions';
+
+interface HomeInfo {
+  squareFootage: number;
+  stories: number;
+  bedrooms: number;
+  heatingSource: string;
+}
 
 interface SystemStepProps {
+  homeInfo: HomeInfo;
+  address: string;
   onSelect: (system: HvacSystem) => void;
   onBack: () => void;
 }
@@ -22,8 +28,8 @@ function StarRating({ count, max = 5 }: { count: number; max?: number }) {
         <svg
           key={i}
           className={cn(
-            "w-4 h-4",
-            i < count ? "text-[#DE7B42]" : "text-[#E8EEF7]"
+            'w-4 h-4',
+            i < count ? 'text-[#DE7B42]' : 'text-[#E8EEF7]'
           )}
           fill="currentColor"
           viewBox="0 0 20 20"
@@ -46,53 +52,29 @@ function SystemCard({
 
   return (
     <div className="flex flex-col rounded-2xl border border-[#E8EEF7] bg-white p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-      {/* Tier badge */}
       <span className="mb-3 self-start rounded-lg border border-[#D7DCE5] bg-[#F5F7FA] px-3 py-1 text-xs font-semibold text-[#6B6B6B]">
         {system.tier}
       </span>
 
-      {/* Brand + name */}
       <h3 className="text-lg font-extrabold text-[#DE7B42] leading-tight">
         {system.brand}
         <br />
         {system.name}
       </h3>
 
-      {/* Type + fuel */}
       <div className="mt-2 flex items-center gap-2 text-sm text-[#6B6B6B]">
         <span>{system.type}</span>
         <span className="h-1.5 w-1.5 rounded-full bg-[#D7DCE5]" />
         <span>{system.fuel}</span>
       </div>
 
-      {/* Specs */}
       <div className="mt-4 space-y-2.5 border-t border-[#E8EEF7] pt-4">
         {[
-          {
-            label: "Efficiency",
-            value: system.seer2,
-            stars: 3,
-          },
-          {
-            label: "Dehumidification",
-            value: null,
-            stars: system.dehumidification,
-          },
-          {
-            label: "Noise Level",
-            value: system.noiseLevel,
-            stars: system.noiseStars,
-          },
-          {
-            label: "Parts Warranty",
-            value: system.partsWarranty,
-            stars: system.partsStars,
-          },
-          {
-            label: "Labor Warranty",
-            value: system.laborWarranty,
-            stars: system.laborStars,
-          },
+          { label: 'Efficiency', value: system.seer2, stars: 3 },
+          { label: 'Dehumidification', value: null, stars: system.dehumidification || 0 },
+          { label: 'Noise Level', value: system.noiseLevel, stars: system.noiseStars || 3 },
+          { label: 'Parts Warranty', value: system.partsWarranty, stars: system.partsStars || 5 },
+          { label: 'Labor Warranty', value: system.laborWarranty, stars: system.laborStars || 3 },
         ].map((spec) => (
           <div key={spec.label} className="flex items-center justify-between gap-2 text-sm">
             <div className="flex items-center gap-1 text-[#121F37] font-medium shrink-0">
@@ -109,11 +91,9 @@ function SystemCard({
         ))}
       </div>
 
-      {/* Pricing */}
       <div className="mt-4 border-t border-[#E8EEF7] pt-4 space-y-1">
         <p className="text-sm text-[#9AA3B2]">
-          Retail Price:{" "}
-          <span className="line-through">{formatCurrency(system.retailPrice)}</span>
+          Retail Price: <span className="line-through">{formatCurrency(system.retailPrice)}</span>
         </p>
         <p className="text-3xl font-extrabold text-[#121F37]">
           {formatCurrency(system.cashPrice)}
@@ -135,7 +115,6 @@ function SystemCard({
         </p>
       </div>
 
-      {/* Quantity */}
       <div className="mt-4 flex items-center gap-3">
         <span className="text-sm font-semibold text-[#121F37]">Quantity</span>
         <div className="flex items-center gap-2 rounded-xl border border-[#D7DCE5] px-3 py-1.5">
@@ -159,7 +138,6 @@ function SystemCard({
         </div>
       </div>
 
-      {/* Select CTA */}
       <Button
         type="button"
         onClick={onSelect}
@@ -171,22 +149,80 @@ function SystemCard({
   );
 }
 
-export function SystemStep({ onSelect, onBack }: SystemStepProps) {
+export function SystemStep({ homeInfo, address, onSelect, onBack }: SystemStepProps) {
+  const [systems, setSystems] = useState<HvacSystem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadSystems() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await calculatePrices({
+          squareFootage: homeInfo.squareFootage,
+          stories: homeInfo.stories,
+          bedrooms: homeInfo.bedrooms,
+          heatingSource: homeInfo.heatingSource,
+        });
+
+        if (result.success && result.data) {
+          setSystems(result.data);
+        } else {
+          setError(result.error || 'Failed to calculate system prices');
+        }
+      } catch (err) {
+        setError('An unexpected error occurred');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadSystems();
+  }, [homeInfo]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-[#E07B3F]" />
+        <p className="mt-4 text-sm text-gray-500">Calculating your options...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500">{error}</p>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => window.location.reload()}
+          className="mt-4"
+        >
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl sm:text-3xl font-extrabold text-[#121F37] leading-tight">
-          Top 3 Matches for you
+          Top 3 Matches for your Home
         </h2>
         <p className="text-sm text-[#6B6B6B]">
+          Based on your {homeInfo.squareFootage} sq ft, {homeInfo.stories} story home with {homeInfo.bedrooms} bedrooms
+        </p>
+        <p className="text-xs text-[#6B6B6B]">
           All 3 are a match. Now choose what fits your comfort and budget.
         </p>
       </div>
 
-      {/* Cards — stacked vertically inside dialog */}
-      <div className="space-y-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {MOCK_SYSTEMS.map((system) => (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {systems.map((system) => (
           <SystemCard
             key={system.id}
             system={system}
@@ -197,13 +233,13 @@ export function SystemStep({ onSelect, onBack }: SystemStepProps) {
 
       <div className="max-w-2xs mx-auto">
         <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        className="w-full h-12 rounded-xl border-[#D7DCE5] text-[#121F37] font-semibold hover:bg-[#F5F7FA]"
-      >
-        Back
-      </Button>
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          className="w-full h-12 rounded-xl border-[#D7DCE5] text-[#121F37] font-semibold hover:bg-[#F5F7FA]"
+        >
+          Back
+        </Button>
       </div>
     </div>
   );

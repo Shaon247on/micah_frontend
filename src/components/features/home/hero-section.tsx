@@ -55,7 +55,7 @@ export function HeroSection() {
 
                     <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row">
                         <Link
-                            href="/"
+                            href="/hvac-estimate"
                             className="inline-flex w-fit items-center justify-center rounded-md bg-(--secondary) px-5 py-4 text-sm font-bold uppercase  text-white transition-colors duration-300 hover:bg-(--secondary-light)"
                         >
                             Get My Instant Quote

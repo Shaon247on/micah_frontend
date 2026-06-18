@@ -306,20 +306,6 @@ export function AppointmentTable({
                 <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-
-            <Select value={serviceFilter} onValueChange={handleServiceFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Services" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Services</SelectItem>
-                {serviceTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {getServiceLabel(type)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 

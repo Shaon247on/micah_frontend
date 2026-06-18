@@ -1,3 +1,14 @@
+export interface RelatedBlog {
+  id: string;
+  slug: string;
+  title: string;
+  image: string | null;
+  category: string;
+  publishedDate: string;
+  readingTime: number;
+}
+
+
 export interface Blog {
   id: string;
   slug: string;
@@ -11,6 +22,7 @@ export interface Blog {
   readingTime: number;
   relatedBlogIds: string[];
   isActive: boolean;
+  relatedBlogs?: RelatedBlog[]; 
   createdAt: string;
   updatedAt: string;
   createdBy: string | null;

@@ -3,29 +3,50 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Lock, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-
 import { cn } from "@/lib/utils";
 
 import {
   scheduleSchema,
   type ScheduleFormValues,
-  type HvacSystem,
-  formatCurrency,
-} from "@/types/HvacQuote.types";
+} from "@/schemas/hvacQuote.schema";
+import { HvacSystem, formatCurrency } from "@/types/HvacQuote.types";
+import { submitQuote } from "@/actions/hvacEstimate.actions";
 
 interface ScheduleStepProps {
   system: HvacSystem;
+  homeInfo: {
+    squareFootage: number;
+    stories: number;
+    bedrooms: number;
+    heatingSource: string;
+  };
+  contactInfo: {
+    fullName: string;
+    phoneNumber: string;
+  };
+  address: string;
   onSubmit: (values: ScheduleFormValues) => void;
   onBack: () => void;
 }
 
-export function ScheduleStep({ system, onSubmit, onBack }: ScheduleStepProps) {
+export function ScheduleStep({
+  system,
+  homeInfo,
+  contactInfo,
+  address,
+  onSubmit,
+  onBack,
+}: ScheduleStepProps) {
+  const router = useRouter();
   const [promoApplied, setPromoApplied] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -55,11 +76,57 @@ export function ScheduleStep({ system, onSubmit, onBack }: ScheduleStepProps) {
   function handleApplyPromo() {
     if (promoCode?.trim()) {
       setPromoApplied(true);
+      toast.success("Promo code applied!");
+    } else {
+      toast.error("Please enter a promo code");
     }
   }
 
-  function handleFormSubmit(values: ScheduleFormValues) {
-    onSubmit(values);
+  async function handleFormSubmit(values: ScheduleFormValues) {
+    setIsSubmitting(true);
+
+    try {
+      // Prepare data for submission
+      const quoteData = {
+        fullName: contactInfo.fullName,
+        phoneNumber: contactInfo.phoneNumber,
+        email: values.email,
+        address: address,
+        squareFootage: homeInfo.squareFootage,
+        stories: homeInfo.stories,
+        bedrooms: homeInfo.bedrooms,
+        heatingSource: homeInfo.heatingSource,
+        selectedTier: parseInt(system.id),
+        systemBrand: system.brand,
+        systemName: system.name,
+        systemPrice: system.cashPrice,
+        retailPrice: system.retailPrice,
+        cashPrice: system.cashPrice,
+        onlineSavings: system.onlineSavings,
+        monthlyPayment: system.monthlyPrice,
+        preferredDate: values.installDate === "pick" ? values.pickedDate : null,
+        preferredTime: null,
+        notes: values.notes || null,
+      };
+
+      const result = await submitQuote(quoteData);
+
+      if (result.success) {
+        toast.success(result.data?.message || "Quote submitted successfully!");
+        onSubmit(values);
+        // Optionally redirect to confirmation or thank you page
+        // router.push(`/quote-confirmation/${result.data.orderNumber}`);
+      } else {
+        toast.error(
+          result.error || "Failed to submit quote. Please try again.",
+        );
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -328,11 +395,20 @@ export function ScheduleStep({ system, onSubmit, onBack }: ScheduleStepProps) {
           {/* Submit */}
           <Button
             type="submit"
-            disabled={!acceptedTerms}
+            disabled={!acceptedTerms || isSubmitting}
             className="w-full h-14 rounded-xl bg-[#DE7B42] hover:bg-[#cf6f38] disabled:bg-[#C4C4C4] text-white font-extrabold uppercase tracking-wide text-sm flex items-center justify-center gap-2"
           >
-            Claim My Quote & Submit
-            <ArrowRight className="h-4 w-4" />
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                Claim My Quote & Submit
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
           </Button>
 
           {/* Footer */}
@@ -346,14 +422,13 @@ export function ScheduleStep({ system, onSubmit, onBack }: ScheduleStepProps) {
             </div>
 
             <p className="text-xs text-[#9AA3B2] leading-relaxed">
-              We'll contact you before collecting payment and confirming your
+              We&apos;ll contact you before collecting payment and confirming your
               installation date.
             </p>
           </div>
         </div>
-
-        {/* Back */}
       </form>
+
       <div className="max-w-2xs mx-auto">
         <Button
           type="button"

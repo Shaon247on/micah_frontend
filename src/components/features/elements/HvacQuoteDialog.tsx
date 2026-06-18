@@ -1,10 +1,9 @@
-"use client";
+'use client';
 
 import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Stepper } from "./Stepper";
@@ -40,7 +39,7 @@ export function HvacQuoteDialog({
   const [currentStep, setCurrentStep] = useState<QuoteStep>("address");
   const [address, setAddress] = useState(initialAddress);
   const [homeInfo, setHomeInfo] = useState<HomeInfoFormValues>(MOCK_HOME_INFO);
-  const [_contact, setContact] = useState<ContactFormValues | undefined>();
+  const [contact, setContact] = useState<ContactFormValues | undefined>();
   const [selectedSystem, setSelectedSystem] = useState<
     HvacSystem | undefined
   >();
@@ -52,7 +51,6 @@ export function HvacQuoteDialog({
 
   function handleOpenChange(val: boolean) {
     if (!val) {
-      // Delay reset so the closing animation plays cleanly
       setTimeout(() => {
         setCurrentStep("address");
         setHomeInfo(MOCK_HOME_INFO);
@@ -75,15 +73,9 @@ export function HvacQuoteDialog({
         aria-describedby={undefined}
       >
         {/* Stepper bar */}
-        {showStepper ? (
-          <DialogTitle className="sticky top-0 z-10 bg-white px-6 pt-6 pb-4 border-b border-[#E8EEF7]">
-            <Stepper currentStep={stepperKey} />
-          </DialogTitle>
-        ) : (
-          <DialogTitle className="sticky top-0 z-10 bg-white px-6 pt-6 pb-4 border-b border-[#E8EEF7]">
-            <Stepper currentStep={stepperKey} />
-          </DialogTitle>
-        )}
+        <DialogTitle className="sticky top-0 z-10 bg-white px-6 pt-6 pb-4 border-b border-[#E8EEF7]">
+          <Stepper currentStep={stepperKey} />
+        </DialogTitle>
 
         {/* Step content */}
         <div className="px-6 py-7 sm:px-8 sm:py-8">
@@ -115,7 +107,6 @@ export function HvacQuoteDialog({
               homeInfo={homeInfo}
               address={address}
               onNext={(updated: HomeInfoEditFormValues) => {
-                // Merge edited values back into homeInfo state
                 setHomeInfo((prev) => ({
                   ...prev,
                   bedrooms: updated.bedrooms,
@@ -129,11 +120,11 @@ export function HvacQuoteDialog({
             />
           )}
 
-          {/* ── Step 3: Contact (We Found 3 Matches) ── */}
+          {/* ── Step 3: Contact ── */}
           {currentStep === "contact" && (
             <ContactStep
-              onNext={(contact) => {
-                setContact(contact);
+              onNext={(contactInfo) => {
+                setContact(contactInfo);
                 goTo("system");
               }}
               onBack={() => goTo("home-info")}
@@ -143,6 +134,7 @@ export function HvacQuoteDialog({
           {/* ── Step 4: System selection ── */}
           {currentStep === "system" && (
             <SystemStep
+              homeInfo={homeInfo}
               onSelect={(system) => {
                 setSelectedSystem(system);
                 goTo("schedule");
@@ -152,9 +144,12 @@ export function HvacQuoteDialog({
           )}
 
           {/* ── Step 5: Schedule ── */}
-          {currentStep === "schedule" && selectedSystem && (
+          {currentStep === "schedule" && selectedSystem && contact && (
             <ScheduleStep
               system={selectedSystem}
+              homeInfo={homeInfo}
+              contactInfo={contact}
+              address={address}
               onSubmit={(values) => {
                 setSchedule(values);
                 goTo("confirmation");

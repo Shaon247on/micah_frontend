@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { STEPPER_STEPS, type QuoteStep } from "@/types/HvacQuote.types";
+import { STEPPER_STEPS, type QuoteStep } from "@/types/hvacQuote.types";
 
 interface StepperProps {
   currentStep: QuoteStep;

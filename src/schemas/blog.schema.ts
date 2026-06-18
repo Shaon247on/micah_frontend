@@ -7,6 +7,17 @@ export const calculateReadingTime = (content: string): number => {
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 };
 
+// Helper to get plain text from HTML
+export const getPlainText = (html: string): string => {
+  if (!html) return '';
+  // Remove HTML tags and decode entities
+  const stripped = html.replace(/<[^>]*>/g, ' ');
+  // Decode HTML entities (like &nbsp;, &amp;, etc.)
+  const decoded = stripped.replace(/&[a-z]+;/gi, ' ');
+  // Remove extra whitespace
+  return decoded.replace(/\s+/g, ' ').trim();
+};
+
 // Generate slug from title
 export const generateSlug = (title: string): string => {
   return title
@@ -15,10 +26,18 @@ export const generateSlug = (title: string): string => {
     .replace(/^-+|-+$/g, '');
 };
 
+// ✅ Updated schema with proper content validation
 export const createBlogSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters').max(200, 'Title too long'),
   excerpt: z.string().min(20, 'Excerpt must be at least 20 characters').max(300, 'Excerpt too long'),
-  content: z.string().min(50, 'Content must be at least 50 characters'),
+  content: z.string()
+    .min(1, 'Content is required')
+    .refine((val) => {
+      const plainText = getPlainText(val);
+      return plainText.length >= 30;
+    }, {
+      message: 'Content must have at least 30 characters of meaningful text.',
+    }),
   image: z.string().url('Invalid image URL').optional().nullable(),
   author: z.string().min(2, 'Author name is required'),
   category: z.string().min(2, 'Category is required'),

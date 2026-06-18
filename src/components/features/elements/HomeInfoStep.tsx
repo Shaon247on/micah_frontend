@@ -2,7 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { type HomeInfoFormValues, MOCK_HOME_INFO } from "@/types/HvacQuote.types";
+import { type HomeInfoFormValues, MOCK_HOME_INFO } from "@/types/hvacQuote.types";
 
 interface HomeInfoStepProps {
   homeInfo?: HomeInfoFormValues;

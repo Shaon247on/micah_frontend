@@ -1,12 +1,12 @@
-import { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/actions/auth.actions';
-import { getBlogs, getBlogCategories } from '@/actions/blog.actions';
-import BlogManagementClient from '@/components/dashboard/blogs/BlogManagementClient';
+import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/actions/auth.actions";
+import { getAllBlogs, getBlogCategories } from "@/actions/blog.actions";
+import BlogManagementClient from "@/components/dashboard/blogs/BlogManagementClient";
 
 export const metadata: Metadata = {
-  title: 'Blog Management | HVAC Service',
-  description: 'Manage blog posts',
+  title: "Blog Management | HVAC Service",
+  description: "Manage blog posts",
 };
 
 interface PageProps {
@@ -20,26 +20,34 @@ interface PageProps {
 
 export default async function BlogManagementPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
-  
+
   if (!user) {
-    redirect('/login');
+    redirect("/login");
   }
-  
+
   // Only super admin can access this page
-  if (user.role !== 'SUPER_ADMIN') {
-    redirect('/dashboard');
+  if (user.role !== "SUPER_ADMIN") {
+    redirect("/dashboard");
   }
-  
+
   const params = await searchParams;
   const page = params.page ? parseInt(params.page) : 1;
   const category = params.category;
   const search = params.search;
-  const isActive = params.status === 'active' ? true : params.status === 'inactive' ? false : undefined;
-  
+  const isActive =
+    params.status === "active"
+      ? true
+      : params.status === "inactive"
+        ? false
+        : undefined;
+
   const [blogsResult, categoriesResult] = await Promise.all([
-    getBlogs({ page, limit: 10, category, search, isActive }),
+    getAllBlogs({ page, limit: 10, category, search, isActive }),
     getBlogCategories(),
   ]);
+
+  console.log("blogs post:", blogsResult);
+  console.log("Categories post:", categoriesResult);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -47,9 +55,9 @@ export default async function BlogManagementPage({ searchParams }: PageProps) {
         initialBlogs={blogsResult.data.blogs}
         initialPagination={blogsResult.data.pagination}
         categories={categoriesResult.data}
-        currentCategory={category || ''}
-        currentSearch={search || ''}
-        currentStatus={params.status || 'all'}
+        currentCategory={category || ""}
+        currentSearch={search || ""}
+        currentStatus={params.status || "all"}
       />
     </div>
   );

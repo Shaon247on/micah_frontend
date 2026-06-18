@@ -55,14 +55,14 @@ export default async function Home() {
       <HeroSection />
       <HeroBottom />
       <InteractiveTool />
-      <HvacEstimateSection />
+      {/* <HvacEstimateSection /> */}
       <AcRejuvenationSection />
       <HvacServicesSection />
       <OtherServicesSection />
       <RepairOrReplaceSection />
       <WaterQualitySection />
       <IndoorAirQualitySection />
-      <HowWeWorkSection />
+      {/* <HowWeWorkSection /> */}
       <AboutUsSection
         storyTitle={storyTitle}
         storySubtitle={storySubtitle}

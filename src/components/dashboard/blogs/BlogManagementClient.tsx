@@ -1,44 +1,42 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useEffect } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Copy,
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  Plus,
+  Search,
+  MoreVertical,
+  Edit,
+  Trash2,
+  Eye,
   CheckCircle,
   XCircle,
-  Clock,
   Calendar,
   ChevronLeft,
   ChevronRight,
-} from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { toast } from 'sonner';
-import { deleteBlog, bulkDeleteBlogs } from '@/actions/blog.actions';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { toast } from "sonner";
+import { deleteBlog, bulkDeleteBlogs, getAllBlogs, toggleBlogStatus } from "@/actions/blog.actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,10 +46,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Checkbox } from '@/components/ui/checkbox';
-import BlogEditorModal from './BlogEditorModal';
-import { Blog } from '@/types/blog.types';
+} from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import BlogEditorModal from "./BlogEditorModal";
+import { Blog } from "@/types/blog.types";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface BlogManagementClientProps {
   initialBlogs: Blog[];
@@ -71,63 +70,93 @@ export default function BlogManagementClient({
   initialBlogs,
   initialPagination,
   categories,
-  currentCategory,
+  currentCategory = "",
   currentSearch,
   currentStatus,
 }: BlogManagementClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
-  const [blogs, setBlogs] = useState(initialBlogs);
-  const [pagination, setPagination] = useState(initialPagination);
-  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([]);
+
+  // ✅ Use state for filters only
+  const [filters, setFilters] = useState({
+    category: currentCategory || "all",
+    search: currentSearch || "",
+    status: currentStatus || "all",
+  });
+
+  // ✅ Debounce search term (500ms delay)
+  const debouncedSearch = useDebounce(filters.search, 500);
+
+  // ✅ State for modals and UI
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState<Blog | null>(null);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
-  const [filters, setFilters] = useState({
-    category: currentCategory,
-    search: currentSearch,
-    status: currentStatus,
-  });
+
+  // ✅ Use the props directly for data (no local state for blogs)
+  const blogs = initialBlogs;
+  const pagination = initialPagination;
 
   // Update URL with filters
   const updateUrlParams = useCallback(() => {
     const params = new URLSearchParams();
-    if (filters.category) params.set('category', filters.category);
-    if (filters.search) params.set('search', filters.search);
+    if (filters.category && filters.category !== 'all') {
+      params.set('category', filters.category);
+    }
+    if (debouncedSearch) params.set('search', debouncedSearch);
     if (filters.status && filters.status !== 'all') params.set('status', filters.status);
     if (pagination.page > 1) params.set('page', pagination.page.toString());
     
     router.push(`${pathname}?${params.toString()}`);
-  }, [router, pathname, filters, pagination.page]);
+  }, [router, pathname, filters.category, debouncedSearch, filters.status, pagination.page]);
 
+  // ✅ Auto-search when debounced search changes
   useEffect(() => {
-    updateUrlParams();
-  }, [updateUrlParams]);
+    if (filters.search !== currentSearch) {
+      updateUrlParams();
+      router.refresh();
+    }
+  }, [debouncedSearch]);
+
+  // ✅ Refresh data by reloading the page
+  const refreshData = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   const handleSearch = () => {
-    setPagination(prev => ({ ...prev, page: 1 }));
-    // Trigger refresh via URL update
     updateUrlParams();
-    // Refresh the page data
     router.refresh();
   };
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
-    setPagination(prev => ({ ...prev, page: 1 }));
-    // Refresh the page data
-    setTimeout(() => router.refresh(), 100);
+    // Update URL and refresh
+    const params = new URLSearchParams();
+    if (key === 'category' && value !== 'all') {
+      params.set('category', value);
+    }
+    if (key === 'status' && value !== 'all') {
+      params.set('status', value);
+    }
+    if (filters.search) params.set('search', filters.search);
+    if (pagination.page > 1) params.set('page', pagination.page.toString());
+    router.push(`${pathname}?${params.toString()}`);
+    router.refresh();
   };
 
   const handlePageChange = (page: number) => {
-    setPagination(prev => ({ ...prev, page }));
-    updateUrlParams();
+    const params = new URLSearchParams();
+    if (filters.category && filters.category !== 'all') {
+      params.set('category', filters.category);
+    }
+    if (filters.search) params.set('search', filters.search);
+    if (filters.status && filters.status !== 'all') params.set('status', filters.status);
+    if (page > 1) params.set('page', page.toString());
+    router.push(`${pathname}?${params.toString()}`);
     router.refresh();
   };
 
@@ -135,26 +164,44 @@ export default function BlogManagementClient({
     if (selectedBlogs.length === blogs.length) {
       setSelectedBlogs([]);
     } else {
-      setSelectedBlogs(blogs.map(b => b.id));
+      setSelectedBlogs(blogs.map((b) => b.id));
     }
   };
 
   const handleSelectBlog = (id: string) => {
-    setSelectedBlogs(prev => 
-      prev.includes(id) ? prev.filter(b => b.id !== id) : [...prev, id]
+    setSelectedBlogs((prev) =>
+      prev.includes(id) ? prev.filter((b) => b.id !== id) : [...prev, id]
     );
+  };
+
+  // ✅ Handle toggle status
+  const handleToggleStatus = async (blog: Blog) => {
+    setIsLoading(true);
+    try {
+      const result = await toggleBlogStatus(blog.id, !blog.isActive);
+      if (result.status === 'success') {
+        toast.success(result.message);
+        refreshData();
+      } else {
+        toast.error(result.message || 'Failed to update status');
+      }
+    } catch (error) {
+      toast.error('Failed to update status');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!blogToDelete) return;
-    
+
     setIsLoading(true);
     const result = await deleteBlog(blogToDelete.id);
-    if (result.status === 'success') {
-      toast.success('Blog deleted successfully');
-      router.refresh();
+    if (result.status === "success") {
+      toast.success("Blog deleted successfully");
+      refreshData();
     } else {
-      toast.error(result.message || 'Failed to delete blog');
+      toast.error(result.message || "Failed to delete blog");
     }
     setIsLoading(false);
     setDeleteDialogOpen(false);
@@ -163,15 +210,15 @@ export default function BlogManagementClient({
 
   const handleBulkDelete = async () => {
     if (selectedBlogs.length === 0) return;
-    
+
     setIsLoading(true);
     const result = await bulkDeleteBlogs(selectedBlogs);
-    if (result.status === 'success') {
+    if (result.status === "success") {
       toast.success(`${selectedBlogs.length} blogs deleted successfully`);
       setSelectedBlogs([]);
-      router.refresh();
+      refreshData();
     } else {
-      toast.error(result.message || 'Failed to delete blogs');
+      toast.error(result.message || "Failed to delete blogs");
     }
     setIsLoading(false);
     setBulkDeleteDialogOpen(false);
@@ -193,7 +240,7 @@ export default function BlogManagementClient({
   };
 
   const handleModalSuccess = () => {
-    router.refresh();
+    refreshData();
   };
 
   const getStatusBadge = (isActive: boolean) => {
@@ -211,12 +258,18 @@ export default function BlogManagementClient({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
+
+  // ✅ Clear search
+  const handleClearSearch = useCallback(() => {
+    setFilters(prev => ({ ...prev, search: '' }));
+    // The debounce will handle the update
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -240,29 +293,39 @@ export default function BlogManagementClient({
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          {/* Search */}
+          {/* Search with Clear Button */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               type="text"
               placeholder="Search blogs..."
               value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="pl-9 w-56"
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, search: e.target.value }))
+              }
+              className="pl-9 pr-9 w-56"
             />
+            {filters.search && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           {/* Category Filter */}
           <Select
             value={filters.category}
-            onValueChange={(value) => handleFilterChange('category', value)}
+            onValueChange={(value) => handleFilterChange("category", value)}
           >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -274,7 +337,7 @@ export default function BlogManagementClient({
           {/* Status Filter */}
           <Select
             value={filters.status}
-            onValueChange={(value) => handleFilterChange('status', value)}
+            onValueChange={(value) => handleFilterChange("status", value)}
           >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="All Status" />
@@ -313,7 +376,9 @@ export default function BlogManagementClient({
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-4 py-3 text-left">
                   <Checkbox
-                    checked={selectedBlogs.length === blogs.length && blogs.length > 0}
+                    checked={
+                      selectedBlogs.length === blogs.length && blogs.length > 0
+                    }
                     onCheckedChange={handleSelectAll}
                   />
                 </th>
@@ -337,13 +402,19 @@ export default function BlogManagementClient({
             <tbody>
               {blogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-12 text-center text-gray-500"
+                  >
                     No blogs found. Create your first blog post!
                   </td>
                 </tr>
               ) : (
                 blogs.map((blog) => (
-                  <tr key={blog.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={blog.id}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3">
                       <Checkbox
                         checked={selectedBlogs.includes(blog.id)}
@@ -374,7 +445,10 @@ export default function BlogManagementClient({
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="secondary" className="bg-[#F8F9FB] text-[#121F37]">
+                      <Badge
+                        variant="secondary"
+                        className="bg-[#F8F9FB] text-[#121F37]"
+                      >
                         {blog.category}
                       </Badge>
                     </td>
@@ -390,7 +464,11 @@ export default function BlogManagementClient({
                     <td className="px-4 py-3 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -399,11 +477,18 @@ export default function BlogManagementClient({
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/blogs/${blog.slug}`} target="_blank">
-                              <Eye className="h-4 w-4 mr-2" />
-                              View
-                            </Link>
+                          <DropdownMenuItem onClick={() => handleToggleStatus(blog)}>
+                            {blog.isActive ? (
+                              <>
+                                <XCircle className="h-4 w-4 mr-2 text-gray-500" />
+                                Deactivate
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                                Activate
+                              </>
+                            )}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-red-600"
@@ -429,8 +514,9 @@ export default function BlogManagementClient({
         {pagination.totalPages > 0 && (
           <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
             <div className="text-sm text-gray-500">
-              Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} blogs
+              Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+              {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+              of {pagination.total} blogs
             </div>
             <div className="flex gap-2">
               <Button
@@ -442,29 +528,38 @@ export default function BlogManagementClient({
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <div className="flex gap-1">
-                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                  let pageNum: number;
-                  if (pagination.totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (pagination.page <= 3) {
-                    pageNum = i + 1;
-                  } else if (pagination.page >= pagination.totalPages - 2) {
-                    pageNum = pagination.totalPages - 4 + i;
-                  } else {
-                    pageNum = pagination.page - 2 + i;
-                  }
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={pagination.page === pageNum ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handlePageChange(pageNum)}
-                      className={pagination.page === pageNum ? 'bg-[#E07B3F] hover:bg-[#d66b2f]' : ''}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
+                {Array.from(
+                  { length: Math.min(5, pagination.totalPages) },
+                  (_, i) => {
+                    let pageNum: number;
+                    if (pagination.totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (pagination.page <= 3) {
+                      pageNum = i + 1;
+                    } else if (pagination.page >= pagination.totalPages - 2) {
+                      pageNum = pagination.totalPages - 4 + i;
+                    } else {
+                      pageNum = pagination.page - 2 + i;
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={
+                          pagination.page === pageNum ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                        className={
+                          pagination.page === pageNum
+                            ? "bg-[#E07B3F] hover:bg-[#d66b2f]"
+                            : ""
+                        }
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  },
+                )}
               </div>
               <Button
                 variant="outline"
@@ -494,31 +589,44 @@ export default function BlogManagementClient({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the blog post &quot;{blogToDelete?.title}&quot;. This action cannot be undone.
+              This will permanently delete the blog post &quot;
+              {blogToDelete?.title}&quot;. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              {isLoading ? 'Deleting...' : 'Delete'}
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isLoading ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Bulk Delete Confirmation Dialog */}
-      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+      <AlertDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Selected Blogs?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {selectedBlogs.length} blog posts. This action cannot be undone.
+              This will permanently delete {selectedBlogs.length} blog posts.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleBulkDelete} className="bg-red-600 hover:bg-red-700">
-              {isLoading ? 'Deleting...' : `Delete ${selectedBlogs.length} Blogs`}
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isLoading
+                ? "Deleting..."
+                : `Delete ${selectedBlogs.length} Blogs`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

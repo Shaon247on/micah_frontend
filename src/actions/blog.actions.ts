@@ -12,14 +12,15 @@ import {
 } from '@/types/blog.types';
 import { generateSlug, calculateReadingTime } from '@/schemas/blog.schema';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// ============================================================
+// PUBLIC ACTIONS (No auth required)
+// ============================================================
 
-export async function getBlogs(params?: {
+export async function getActiveBlogs(params?: {
   page?: number;
   limit?: number;
   category?: string;
   search?: string;
-  isActive?: boolean;
 }): Promise<BlogResponse> {
   try {
     const cookieStore = await cookies();
@@ -30,7 +31,6 @@ export async function getBlogs(params?: {
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.category) queryParams.append('category', params.category);
     if (params?.search) queryParams.append('search', params.search);
-    if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
     
     const response = await api.get(`/api/blogs?${queryParams.toString()}`, {
       headers: {
@@ -40,7 +40,7 @@ export async function getBlogs(params?: {
     
     return response.data;
   } catch (error) {
-    console.error('Error fetching blogs:', error);
+    console.error('Error fetching active blogs:', error);
     return {
       status: 'error',
       data: {
@@ -68,28 +68,7 @@ export async function getBlogBySlug(slug: string): Promise<BlogSingleResponse> {
     });
     
     return response.data;
-  } catch (error) {
-    console.error('Error fetching blog:', error);
-    return {
-      status: 'error',
-      data: {} as any,
-    };
-  }
-}
-
-export async function getBlogById(id: string): Promise<BlogSingleResponse> {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    
-    const response = await api.get(`/api/blogs/id/${id}`, {
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-    });
-    
-    return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching blog:', error);
     return {
       status: 'error',
@@ -119,6 +98,101 @@ export async function getBlogCategories(): Promise<BlogCategoriesResponse> {
   }
 }
 
+// ============================================================
+// ADMIN ACTIONS (Requires authentication)
+// ============================================================
+
+// ✅ Get ALL blogs (including inactive) - Admin only
+export async function getAllBlogs(params?: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  search?: string;
+  isActive?: boolean;
+}): Promise<BlogResponse> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
+    
+    const response = await api.get(`/api/blogs/admin/all?${queryParams.toString()}`, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all blogs:', error);
+    return {
+      status: 'error',
+      data: {
+        blogs: [],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+        },
+      },
+    };
+  }
+}
+
+// ✅ Get blog by ID (admin only)
+export async function getBlogById(id: string): Promise<BlogSingleResponse> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    
+    const response = await api.get(`/api/blogs/admin/${id}`, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching blog by ID:', error);
+    return {
+      status: 'error',
+      data: {} as any,
+    };
+  }
+}
+
+// ✅ Toggle blog status (active/inactive)
+export async function toggleBlogStatus(id: string, isActive: boolean): Promise<{ status: string; message: string; data?: any }> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    
+    const response = await api.patch(`/api/blogs/admin/${id}/toggle-status`, 
+      { isActive },
+      {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Error toggling blog status:', error);
+    return {
+      status: 'error',
+      message: error.response?.data?.message || 'Failed to toggle blog status',
+    };
+  }
+}
+
+// Create blog
 export async function createBlog(data: CreateBlogInput): Promise<BlogMutationResponse> {
   try {
     const cookieStore = await cookies();
@@ -149,18 +223,16 @@ export async function createBlog(data: CreateBlogInput): Promise<BlogMutationRes
   }
 }
 
+// Update blog
 export async function updateBlog(data: UpdateBlogInput): Promise<BlogMutationResponse> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
     
-    // If title is updated, regenerate slug
     let payload: any = { ...data };
     if (data.title) {
       payload.slug = generateSlug(data.title);
     }
-    
-    // Recalculate reading time if content changed
     if (data.content) {
       payload.readingTime = calculateReadingTime(data.content);
     }
@@ -181,6 +253,7 @@ export async function updateBlog(data: UpdateBlogInput): Promise<BlogMutationRes
   }
 }
 
+// Delete blog
 export async function deleteBlog(id: string): Promise<{ status: string; message: string }> {
   try {
     const cookieStore = await cookies();
@@ -202,6 +275,7 @@ export async function deleteBlog(id: string): Promise<{ status: string; message:
   }
 }
 
+// Bulk delete blogs
 export async function bulkDeleteBlogs(ids: string[]): Promise<{ status: string; message: string }> {
   try {
     const cookieStore = await cookies();
@@ -219,6 +293,29 @@ export async function bulkDeleteBlogs(ids: string[]): Promise<{ status: string; 
     return {
       status: 'error',
       message: error.response?.data?.message || 'Failed to delete blogs',
+    };
+  }
+}
+
+// Upload blog image
+export async function uploadBlogImage(formData: FormData): Promise<{ status: string; message: string; imageUrl?: string }> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    
+    const response = await api.post('/api/blogs/upload-image', formData, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Error uploading blog image:', error);
+    return {
+      status: 'error',
+      message: error.response?.data?.message || 'Failed to upload image',
     };
   }
 }

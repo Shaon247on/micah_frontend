@@ -33,6 +33,9 @@ interface UserContextType {
   refreshUser: () => Promise<void>;
 }
 
+
+
+
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
@@ -42,6 +45,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const loadAttempted = useRef(false);
 
   const loadUserData = useCallback(async (showLoading: boolean = true) => {
+    // ✅ Allow refresh even if load was attempted
+    if (!showLoading) {
+      // Force refresh - reset loadAttempted
+      loadAttempted.current = false;
+    }
+    
     // Prevent multiple simultaneous loads
     if (loadAttempted.current && !showLoading) {
       return;
@@ -54,15 +63,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
       
       loadAttempted.current = true;
       
-      // Try to get user from cookie first (faster)
-      let userData = await getCurrentUser();
+      // ✅ Always try to get user from API first for fresh data
+      let userData = await fetchUserInfo();
       
-      // If not in cookie or incomplete, fetch from API
+      // If API fails, try to get from cookie
       if (!userData || !userData.id) {
-        userData = await fetchUserInfo();
+        userData = await getCurrentUser();
       }
       
       if (isMounted.current) {
+        console.log("✅ User data loaded:", userData?.name);
         setUser(userData);
       }
     } catch (error) {
@@ -87,11 +97,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
   }, [loadUserData]);
 
-  // Refresh user data (without showing loading)
+  // ✅ Refresh user data - always fetches fresh from API
   const refreshUser = useCallback(async () => {
-    loadAttempted.current = false;
-    await loadUserData(false);
-  }, [loadUserData]);
+    console.log("🔄 Refreshing user data...");
+    // Force fetch from API and update state
+    setIsLoading(true);
+    try {
+      const userData = await fetchUserInfo();
+      if (isMounted.current) {
+        console.log("✅ User data refreshed:", userData?.name);
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+      if (isMounted.current) {
+        setUser(null);
+      }
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, isLoading, refreshUser }}>

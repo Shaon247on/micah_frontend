@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import {
   contactSchema,
   type ContactFormValues,
-} from "@/types/HvacQuote.types";
+} from "@/types/hvacQuote.types";
 
 interface ContactStepProps {
   onNext: (contact: ContactFormValues) => void;
