@@ -36,6 +36,10 @@ import {
   ClockIcon,
   Star,
   Filter,
+  Calculator,
+  Building,
+  Bed,
+  Square,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +53,7 @@ import {
 import { updateAppointmentStatus } from "@/actions/appointment.actions";
 import { Appointment } from "@/types/appointment";
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
 
 interface AppointmentDetailsProps {
   appointment: Appointment;
@@ -136,6 +141,11 @@ const serviceTypeLabels: Record<
     icon: <Wind className="h-5 w-5" />,
     description: "Air quality assessment and improvement solutions",
   },
+  HVAC_ESTIMATE: {
+    label: "HVAC Estimate Quote",
+    icon: <Calculator className="h-5 w-5" />,
+    description: "Custom HVAC system estimate and quote",
+  },
 };
 
 export function AppointmentDetails({ appointment }: AppointmentDetailsProps) {
@@ -183,8 +193,162 @@ export function AppointmentDetails({ appointment }: AppointmentDetailsProps) {
     return serviceTypeLabels[type]?.description || "Professional HVAC service";
   };
 
+  // ✅ Format currency
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // ✅ Render HVAC Quote Details
+  // ✅ Render HVAC Quote Details with all user-provided information
+  const renderHvacQuoteDetails = () => {
+    const note = appointment.additionalNote || "";
+
+    // Extract order number from the note
+    const orderMatch = note.match(/HVAC Estimate Quote #([^\n]+)/);
+    const orderNumber = orderMatch ? orderMatch[1] : "N/A";
+
+    // Extract system info from note
+    const systemMatch = note.match(/System: ([^\n]+)/);
+    const systemInfo = systemMatch ? systemMatch[1] : "N/A";
+
+    // Extract tier from note
+    const tierMatch = note.match(/Tier: (\d+)/);
+    const tier = tierMatch ? tierMatch[1] : "N/A";
+
+    // Extract notes from note (the user's notes section)
+    const notesMatch = note.match(/Notes: ([^\n]*)/);
+    const userNotes =
+      notesMatch && notesMatch[1] !== "N/A" ? notesMatch[1] : null;
+
+    // For now, we'll show the note content as quote details
+    // In a production environment, you'd want to fetch the quote from the database
+    return (
+      <div className="space-y-6">
+        {/* Order Info */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex items-start gap-3">
+            <FileText className="h-5 w-5 text-[#E07B3F] mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-[#6B6B6B]">Order Number</p>
+              <p className="text-[#121F37] font-medium">{orderNumber}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <Calculator className="h-5 w-5 text-[#E07B3F] mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-[#6B6B6B]">System</p>
+              <p className="text-[#121F37] font-medium">{systemInfo}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <Star className="h-5 w-5 text-[#E07B3F] mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-[#6B6B6B]">Tier</p>
+              <p className="text-[#121F37] font-medium">
+                {tier === "1"
+                  ? "Economy"
+                  : tier === "2"
+                    ? "Standard"
+                    : tier === "3"
+                      ? "Premium"
+                      : tier}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Home Information - All 4 fields the user provided */}
+        <div>
+          <h4 className="text-sm font-semibold text-[#121F37] mb-3">
+            Home Information
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="flex items-start gap-3">
+              <Square className="h-5 w-5 text-[#E07B3F] mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-[#6B6B6B]">
+                  Square Footage
+                </p>
+                <p className="text-[#121F37] font-medium">
+                  {appointment.squareFootage
+                    ? `${appointment.squareFootage} sq ft`
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Building className="h-5 w-5 text-[#E07B3F] mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-[#6B6B6B]">Stories</p>
+                <p className="text-[#121F37] font-medium">
+                  {appointment.stories
+                    ? `${appointment.stories} story${appointment.stories > 1 ? "s" : ""}`
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Bed className="h-5 w-5 text-[#E07B3F] mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-[#6B6B6B]">Bedrooms</p>
+                <p className="text-[#121F37] font-medium">
+                  {appointment.bedrooms
+                    ? `${appointment.bedrooms} bedroom${appointment.bedrooms > 1 ? "s" : ""}`
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Thermometer className="h-5 w-5 text-[#E07B3F] mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-[#6B6B6B]">
+                  Heating Source
+                </p>
+                <p className="text-[#121F37] font-medium">
+                  {appointment.heatingSource
+                    ? appointment.heatingSource.charAt(0).toUpperCase() +
+                      appointment.heatingSource.slice(1)
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Show the full note as quote details */}
+        {appointment.additionalNote && (
+          <>
+            <Separator />
+            <div>
+              <h4 className="text-sm font-semibold text-[#121F37] mb-2">
+                Full Quote Details
+              </h4>
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <pre className="text-sm text-[#121F37] whitespace-pre-wrap font-sans">
+                  {appointment.additionalNote}
+                </pre>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   const renderServiceDetails = () => {
     const type = appointment.appointmentType;
+
+    // ✅ Check if it's a HVAC Estimate
+    if (type === "HVAC_ESTIMATE") {
+      return renderHvacQuoteDetails();
+    }
 
     switch (type) {
       case "AC_REJUVENATION":
@@ -527,10 +691,18 @@ export function AppointmentDetails({ appointment }: AppointmentDetailsProps) {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {/* Back button */}
+      <Link href="/dashboard/appointments">
+        <Button variant="ghost" className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Appointments
+        </Button>
+      </Link>
+
       {/* Title Section */}
       <div>
         <div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3 mb-2">
               {getServiceIcon(appointment.appointmentType)}
               <h1 className="text-2xl font-bold text-[#121F37]">
@@ -558,12 +730,10 @@ export function AppointmentDetails({ appointment }: AppointmentDetailsProps) {
                 <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                 <SelectItem value="COMPLETED">Completed</SelectItem>
                 <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                {/* <SelectItem value="RESCHEDULED">Rescheduled</SelectItem> */}
               </SelectContent>
             </Select>
           </div>
         </div>
-        <div className="flex gap-3"></div>
         <p className="text-[#6B6B6B]">
           {getServiceDescription(appointment.appointmentType)}
         </p>

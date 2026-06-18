@@ -17,6 +17,11 @@ export interface Appointment {
   repairTuneUpDetails?: RepairTuneUpDetails | null;
   waterQualityDetails?: WaterQualityDetails | null;
   indoorAirQualityDetails?: IndoorAirQualityDetails | null;
+  // ✅ Add HVAC quote specific fields
+  squareFootage?: number | null;
+  stories?: number | null;
+  bedrooms?: number | null;
+  heatingSource?: string | null;
 }
 
 export interface AcRejuvenationDetails {
